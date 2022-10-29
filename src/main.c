@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
-#include <unistd.h>
+#include <unistd.h> // FOR FILENOs And Various Functions Like "write"
 #include <pty.h>
 #include <termios.h>
+
+// For PATH_MAX
+#include <linux/limits.h>
+#include <limits.h>
 
 // Uses Simple Escape Codes To Get The Cursor Positon
 int TermGetCursorPos(int *rows, int *cols) {
@@ -43,6 +47,15 @@ int main(int argc, char** argv) {
 	int rows = 0; // Width
 	int cols = 0; // Height
 	TermGetWinSize(&rows, &cols);
+
+	char cwd[PATH_MAX];
+	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+		printf("CWD: %s\n", cwd);
+	} else {
+		perror("getcwd() error");
+		return 1;
+	}
+
 	printf("Terminal Size: %dx%d\n", cols, rows);
 	return 0;
 }
