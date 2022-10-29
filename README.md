@@ -1,2 +1,5 @@
 # termrec
-Terminal Recorder Written In r̶u̶s̶t C
+Terminal recorder written in r̶u̶s̶t c
+
+---
+# Thanks
