@@ -1,5 +1,5 @@
 CC:=clang
-CFLAGS:=-Wall
+CFLAGS:=-Wall -std=c99
 LFLAGS:=
 
 bin:=termrec
