@@ -1,11 +1,12 @@
 CC:=clang
-CFLAGS:=-Wall -std=c99
+CFLAGS:=-std=c99 -Wall -O0 -g
 LFLAGS:=
 
 bin:=termrec
 obj:=obj
 
-OBJS:=$(patsubst %.c, %.o, $(wildcard src/*.c))
+SRCS:=src/main.c src/terminal.c src/xwrap.c src/signals.c
+OBJS:=$(SRCS:.c=.o)
 
 all: $(bin)
 
