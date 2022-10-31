@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "record.h"
 
 // Initializes Writer, And Returns The FILE* in which all the data is written
