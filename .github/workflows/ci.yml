@@ -22,3 +22,20 @@ jobs:
         path: ./termrec
         if-no-files-found: error
 
+  mac-x86_64:
+    runs-on: macos-11
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Build
+      run: make all
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: mac-x86_64
+        path: ./termrec
+        if-no-files-found: error
+
