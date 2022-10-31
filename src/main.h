@@ -8,6 +8,11 @@
 #define _DARWIN_C_SOURCE
 #endif
 
+#ifdef __FreeBSD__
+#define _BSD_SOURCE
+#define __BSD_VISIBLE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
