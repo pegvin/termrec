@@ -383,6 +383,7 @@ void StartOutputProcess(struct outargs *oa) {
 		fprintf(evout, ",\"stdout\":[[0,\"\"]\n");
 	}
 
+	// Set The Streams To Be Un-Buffered
 	setbuf(evout, NULL);
 	setbuf(stdout, NULL);
 
