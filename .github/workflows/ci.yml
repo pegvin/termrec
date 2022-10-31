@@ -39,3 +39,30 @@ jobs:
         path: ./termrec
         if-no-files-found: error
 
+  freebsd-x86_64:
+    runs-on: macos-12
+    name: Setup and Compile On FreeBSD
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: FreeBSD for termrec builds
+      id: termrec
+      uses: vmactions/freebsd-vm@v0
+      with:
+        usesh: true
+        prepare: |
+          pkg install -y make
+
+        run: |
+          make all
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: feeebsd-x86_64
+        path: ./termrec
+        if-no-files-found: error
+
+
+
