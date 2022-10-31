@@ -7,13 +7,19 @@ enum control_command {
 	CMD_PAUSE,
 };
 
+typedef enum {
+	ASCIINEMA_V1 = 1,
+	ASCIINEMA_V2 = 2,
+	TERMREC_V1   = 3
+} fileformat_t;
+
 struct outargs {
 	int start_paused;
 	int controlfd;
 	int masterfd;
 	int rows;
 	int cols;
-	int format_version;
+	fileformat_t format_version;
 	int use_raw;
 
 	const char *cmd;

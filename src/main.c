@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 	exec_cmd = NULL;
 
 	if (!oa.format_version) {
-		oa.format_version = 1;
+		oa.format_version = ASCIINEMA_V2;
 	}
 
 	oa.outfn = "events.cast";
@@ -271,8 +271,8 @@ static void handle_command(enum control_command cmd) {
 }
 
 // This Function Is Responsible For Writing The Data To The File
-static inline void handle_input(unsigned char *buf, size_t buflen, int format_version) {
-	assert(format_version == 1 || format_version == 2);
+static inline void handle_input(unsigned char *buf, size_t buflen, fileformat_t format_version) {
+	assert(format_version >= ASCIINEMA_V1 && format_version <= TERMREC_V1);
 	static int first = 1;
 	double delta;
 
@@ -293,9 +293,9 @@ static inline void handle_input(unsigned char *buf, size_t buflen, int format_ve
 
 	dur += delta;
 
-	if (format_version == 2) {
+	if (format_version == ASCIINEMA_V2) {
 		fprintf(evout, "[%0.4f,\"o\",\"", dur / 1000);
-	} else if (format_version == 1) {	
+	} else if (format_version == ASCIINEMA_V1) {
 		fprintf(evout, ",[%0.4f,\"", delta / 1000);
 	}
 
@@ -332,7 +332,7 @@ static inline void handle_input(unsigned char *buf, size_t buflen, int format_ve
 		}
 	}
 
-	fputs("\"]\n", evout);
+	if (format_version == ASCIINEMA_V1 || format_version == ASCIINEMA_V2) fputs("\"]\n", evout);
 }
 
 /*
@@ -347,7 +347,8 @@ void StartOutputProcess(struct outargs *oa) {
 	status = EXIT_SUCCESS;
 	master = oa->masterfd;
 
-	assert(oa->format_version == 1 || oa->format_version == 2);
+	assert(oa->format_version >= ASCIINEMA_V1 && oa->format_version <= TERMREC_V1);
+	// assert(oa->format_version == 1 || oa->format_version == 2);
 
 	start_paused = paused = oa->start_paused;
 
@@ -374,10 +375,10 @@ void StartOutputProcess(struct outargs *oa) {
 	    oa->title ? oa->title : "",
 	    oa->env
 	);
-	if (oa->format_version == 2) {
+	if (oa->format_version == ASCIINEMA_V2) {
 		// v2 header finished here, data will be appended in separate lines
 		fprintf(evout, "}\n");
-	} else if (oa->format_version == 1) {
+	} else if (oa->format_version == ASCIINEMA_V1) {
 		// v1 header finished, console data is appended in structure
 		fprintf(evout, ",\"stdout\":[[0,\"\"]\n");
 	}
@@ -461,7 +462,7 @@ void StartOutputProcess(struct outargs *oa) {
 	}
 
 end:
-	if (oa->format_version == 1) {
+	if (oa->format_version == ASCIINEMA_V1) {
 		// closes stdout segment
 		fprintf(evout, "]}\n");
 	}
