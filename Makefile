@@ -5,7 +5,7 @@ LFLAGS:=
 bin:=termrec
 obj:=obj
 
-SRCS:=src/main.c src/terminal.c src/xwrap.c src/signals.c
+SRCS:=src/main.c src/terminal.c src/xwrap.c src/signals.c src/writer.c
 OBJS:=$(SRCS:.c=.o)
 
 all: $(bin)

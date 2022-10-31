@@ -3,6 +3,7 @@
 #include "record.h"
 #include "xwrap.h"
 #include "utf8.h"
+#include "writer.h"
 
 // Also Used in signals.c
 struct winsize owin, rwin, win;
@@ -14,7 +15,6 @@ extern char** environ;
 static int paused, start_paused;
 static struct timeval prevtv, nowtv;
 static double dur;  // Duration
-static FILE* evout; // Output File
 static int master;  // Master/Parent FD
 
 // Forward Decls...
@@ -293,11 +293,7 @@ static inline void handle_input(unsigned char *buf, size_t buflen, fileformat_t 
 
 	dur += delta;
 
-	if (format_version == ASCIINEMA_V2) {
-		fprintf(evout, "[%0.4f,\"o\",\"", dur / 1000);
-	} else if (format_version == ASCIINEMA_V1) {
-		fprintf(evout, ",[%0.4f,\"", delta / 1000);
-	}
+	WriteStdoutStart((format_version == ASCIINEMA_V1 ? delta : dur) / 1000);
 
 	uint32_t state, cp;
 	state = 0;
@@ -310,29 +306,29 @@ static inline void handle_input(unsigned char *buf, size_t buflen, fileformat_t 
 						uint32_t h, l;
 						h = ((cp - 0x10000) >> 10) + 0xd800;
 						l = ((cp - 0x10000) & 0x3ff) + 0xdc00;
-						fprintf(evout, "\\u%04" PRIx32 "\\u%04" PRIx32, h, l);
+						WriteStdout_fprintf("\\u%04" PRIx32 "\\u%04" PRIx32, h, l);
 					} else {
-						fprintf(evout, "\\u%04" PRIx32, cp);
+						WriteStdout_fprintf("\\u%04" PRIx32, cp);
 					}
 				} else {
-					fputs("\\ud83d\\udca9", evout);
+					WriteStdout_fputs("\\ud83d\\udca9");
 				}
 			} else {
 				switch (buf[j]) {
 				case '"':
 				case '\\':
-					fputc('\\', evout); // output backslash for escaping
-					fputc(buf[j], evout); // print the character itself
+					WriteStdout_fputc('\\'); // output backslash for escaping
+					WriteStdout_fputc(buf[j]); // print the character itself
 					break;
 				default:
-					fputc(buf[j], evout);
+					WriteStdout_fputc(buf[j]);
 					break;
 				}
 			}
 		}
 	}
 
-	if (format_version == ASCIINEMA_V1 || format_version == ASCIINEMA_V2) fputs("\"]\n", evout);
+	WriteStdoutEnd();
 }
 
 /*
@@ -348,44 +344,12 @@ void StartOutputProcess(struct outargs *oa) {
 	master = oa->masterfd;
 
 	assert(oa->format_version >= ASCIINEMA_V1 && oa->format_version <= TERMREC_V1);
-	// assert(oa->format_version == 1 || oa->format_version == 2);
 
 	start_paused = paused = oa->start_paused;
 
-	evout = xfopen(oa->outfn, "wb");
-
-	/* Write asciicast header and append events. Format defined at
-	 * v1 https://github.com/asciinema/asciinema/blob/master/doc/asciicast-v1.md
-	 * v2 https://github.com/asciinema/asciinema/blob/master/doc/asciicast-v2.md
-	 *
-	 * With v1, we insert an empty first record to avoid the hassle of dealing with
-	 * ES (still) not supporting trailing commas.
-	 */
-	fprintf(evout,
-	    "{                        " // have room to write duration later
-	    "\"version\": %d, "
-	    "\"width\": %d, "
-	    "\"height\": %d, "
-	    "\"command\": \"%s\", "
-	    "\"title\": \"%s\", "
-	    "\"env\": %s",
-	    oa->format_version,
-	    oa->cols, oa->rows,
-	    oa->cmd ? oa->cmd : "",
-	    oa->title ? oa->title : "",
-	    oa->env
-	);
-	if (oa->format_version == ASCIINEMA_V2) {
-		// v2 header finished here, data will be appended in separate lines
-		fprintf(evout, "}\n");
-	} else if (oa->format_version == ASCIINEMA_V1) {
-		// v1 header finished, console data is appended in structure
-		fprintf(evout, ",\"stdout\":[[0,\"\"]\n");
-	}
-
-	// Set The Streams To Be Un-Buffered
-	setbuf(evout, NULL);
-	setbuf(stdout, NULL);
+	setbuf(stdout, NULL); // Set The Stream To Be Un-Buffered
+	WriterInit(oa->outfn);
+	WriteHeader(oa);
 
 	xclose(STDIN_FILENO);
 
@@ -460,17 +424,8 @@ void StartOutputProcess(struct outargs *oa) {
 	}
 
 end:
-	if (oa->format_version == ASCIINEMA_V1) {
-		// closes stdout segment
-		fprintf(evout, "]}\n");
-	}
-	// seeks to header, overwriting spaces with duration
-	fseek(evout, 1L, SEEK_SET);
-	fprintf(evout, "\"duration\": %.9g, ", dur / 1000);
-
-	fflush(evout);
-
-	xfclose(evout);
+	WriteDuration(dur / 1000);
+	WriterClose();
 	xclose(oa->masterfd);
 
 	printf("Session Recorded Successfully!\r\n");
