@@ -1,8 +1,6 @@
 CC:=clang
 CFLAGS:=-std=c99 -Wall -O0 -g
 LFLAGS:=
-CLI_CFLAGS:=
-CLI_LFLAGS:=
 
 bin:=termrec
 obj:=obj
@@ -13,10 +11,10 @@ OBJS:=$(SRCS:.c=.o)
 all: $(bin)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(CLI_CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(bin): $(OBJS)
-	$(CC) $(CFLAGS) $(CLI_CFLAGS) $(LFLAGS) $(CLI_LFLAGS) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(LFLAGS) $(OBJS) -o $@
 
 .PHONY: run
 .PHONY: clean
