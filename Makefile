@@ -1,6 +1,15 @@
 CC:=clang
-CFLAGS:=-std=c99 -Wall -O0 -g -D_DARWIN_C_SOURCE -D_BSD_SOURCE -D__BSD_VISIBLE
+CFLAGS:=-std=c99 -Wall -O0 -g
 LFLAGS:=
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    CFLAGS += -D_DARWIN_C_SOURCE
+endif
+ifeq ($(UNAME_S),FreeBSD)
+    CFLAGS += -D_BSD_SOURCE -D__BSD_VISIBLE
+    LFLAGS += -lexecinfo
+endif
 
 bin:=termrec
 obj:=obj
