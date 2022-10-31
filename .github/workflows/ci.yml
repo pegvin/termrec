@@ -41,19 +41,15 @@ jobs:
 
   freebsd-x86_64:
     runs-on: macos-12
-    name: Setup and Compile On FreeBSD
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: FreeBSD for termrec builds
+    - name: Run FreeBSD VM & Build
       id: termrec
       uses: vmactions/freebsd-vm@v0
       with:
         usesh: true
-        prepare: |
-          pkg install -y make
-
         run: |
           make all
 
