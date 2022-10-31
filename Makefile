@@ -1,15 +1,8 @@
 CC:=clang
 CFLAGS:=-std=c99 -Wall -O0 -g
 LFLAGS:=
-
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-    CFLAGS += -D_DARWIN_C_SOURCE
-endif
-ifeq ($(UNAME_S),FreeBSD)
-    CFLAGS += -D_BSD_SOURCE -D__BSD_VISIBLE
-    LFLAGS += -lexecinfo
-endif
+CLI_CFLAGS:=
+CLI_LFLAGS:=
 
 bin:=termrec
 obj:=obj
@@ -20,10 +13,10 @@ OBJS:=$(SRCS:.c=.o)
 all: $(bin)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(CLI_CFLAGS) -c $< -o $@
 
 $(bin): $(OBJS)
-	$(CC) $(CFLAGS) $(LFLAGS) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(CLI_CFLAGS) $(LFLAGS) $(CLI_LFLAGS) $(OBJS) -o $@
 
 .PHONY: run
 .PHONY: clean
