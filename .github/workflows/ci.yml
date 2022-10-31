@@ -30,7 +30,7 @@ jobs:
         submodules: recursive
 
     - name: Build
-      run: make all CLI_CFLAGS="-D_DARWIN_C_SOURCE"
+      run: make all
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
@@ -51,7 +51,7 @@ jobs:
       with:
         usesh: true
         run: |
-          make all CLI_CFLAGS="-D_BSD_SOURCE -D__BSD_VISIBLE" CLI_LFLAGS="-lexecinfo"   
+          make all
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
