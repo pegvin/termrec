@@ -389,11 +389,8 @@ void StartOutputProcess(struct outargs *oa) {
 
 	xclose(STDIN_FILENO);
 
-	/* Clear screen */
-	printf("\x1b[2J");
-
-	/* Move cursor to top-left */
-	printf("\x1b[H");
+	printf("\x1b[2J"); // Clear screen
+	printf("\x1b[H");  // Move cursor to top-left
 
 	int f = fcntl(oa->masterfd, F_GETFL);
 	fcntl(oa->masterfd, F_SETFL, f | O_NONBLOCK);
