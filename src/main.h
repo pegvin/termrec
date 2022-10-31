@@ -21,7 +21,9 @@
 #include <sys/ioctl.h>
 
 // For PATH_MAX
+#ifdef __linux__
 #include <linux/limits.h>
+#endif
 #include <limits.h>
 
 #include "record.h"
