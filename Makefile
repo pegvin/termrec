@@ -1,5 +1,5 @@
 CC:=clang
-CFLAGS:=-std=c99 -Wall -O0 -g -D_DARWIN_C_SOURCE
+CFLAGS:=-std=c99 -Wall -O0 -g -D_DARWIN_C_SOURCE -D_BSD_SOURCE -D__BSD_VISIBLE
 LFLAGS:=
 
 bin:=termrec
