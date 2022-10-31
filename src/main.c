@@ -22,9 +22,10 @@ void StartOutputProcess(struct outargs *oa);
 void StartChildShell(const char *shell, const char *exec_cmd, struct winsize *win, int masterfd);
 void ProcessInputs(int masterfd, int controlfd);
 char* SerializeEnv(void);
+void SetupSignalHandlers(void); // In signals.c
 
 int main(int argc, char** argv) {
-	SetupSignalHandlers(); // In signals.c
+	SetupSignalHandlers();
 
 	int rows = 0; // Width
 	int cols = 0; // Height
