@@ -76,15 +76,11 @@ int main(int argc, char** argv) {
 
 	child = fork();
 	if (child < 0) die("fork");
-
-	if (child == 0) {
+	else if (child == 0) {
 		pid_t subchild = fork();
 		if (subchild < 0) {
 			perror("fork");
-			if (kill(0, SIGTERM) == -1) {
-				perror("kill");
-			}
-
+			if (kill(0, SIGTERM) == -1) perror("kill");
 			exit(EXIT_FAILURE);
 		}
 
