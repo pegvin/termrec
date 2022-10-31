@@ -474,6 +474,7 @@ end:
 	xfclose(evout);
 	xclose(oa->masterfd);
 
+	printf("Session Recorded Successfully!\r\n");
 	exit(status);
 }
 
