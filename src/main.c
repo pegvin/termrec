@@ -273,7 +273,7 @@ static void handle_command(enum control_command cmd) {
 
 // This Function Is Responsible For Writing The Data To The File
 static inline void handle_input(unsigned char *buf, size_t buflen, fileformat_t format_version) {
-	assert(format_version >= ASCIINEMA_V1 && format_version <= TERMREC_V1);
+	assert(format_version >= ASCIINEMA_V1 && format_version <= ASCIINEMA_V2);
 	static int first = 1;
 	double delta;
 
@@ -344,7 +344,7 @@ void StartOutputProcess(struct outargs *oa) {
 	status = EXIT_SUCCESS;
 	master = oa->masterfd;
 
-	assert(oa->format_version >= ASCIINEMA_V1 && oa->format_version <= TERMREC_V1);
+	assert(oa->format_version >= ASCIINEMA_V1 && oa->format_version <= ASCIINEMA_V2);
 
 	start_paused = paused = oa->start_paused;
 

@@ -9,8 +9,7 @@ enum control_command {
 
 typedef enum {
 	ASCIINEMA_V1 = 1,
-	ASCIINEMA_V2 = 2,
-	TERMREC_V1   = 3
+	ASCIINEMA_V2 = 2
 } fileformat_t;
 
 struct outargs {
