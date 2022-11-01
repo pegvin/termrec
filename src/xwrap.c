@@ -1,6 +1,8 @@
 #include "xwrap.h"
 #include "main.h"
 
+#define _XOPEN_SOURCE 500
+
 void xclose(int fd) {
 	if (close(fd) == -1) die("close");
 }
