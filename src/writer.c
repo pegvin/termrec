@@ -20,7 +20,6 @@ FILE* WriterInit(const char* fileName) {
 */
 int WriteHeader(struct outargs* oa) {
 	if (oa == NULL || outfile == NULL) return -1;
-	if (oa->format_version == TERMREC_V1) return 0;
 
 	memcpy(&OA, oa, sizeof(struct outargs));
 	if (oa->format_version == ASCIINEMA_V1 || oa->format_version == ASCIINEMA_V2) {
