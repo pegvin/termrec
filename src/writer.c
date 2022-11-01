@@ -1,5 +1,6 @@
 #include "writer.h"
 #include "xwrap.h"
+#include "main.h"
 #include <string.h>
 
 FILE* outfile = NULL;
@@ -31,12 +32,16 @@ int WriteHeader(struct outargs* oa) {
 		 * ES (still) not supporting trailing commas.
 		 */
 
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+
 		#define _CONDITION_TAB oa->format_version == ASCIINEMA_V1 ? '\t' : ' '
 		#define _CONDITION_NEWL oa->format_version == ASCIINEMA_V1 ? '\n' : ' '
 		WriteStdout_fprintf("{                                                                     "); // Have Room For Putting Duration
-		WriteStdout_fprintf("%c\"version\": %d,%c", _CONDITION_TAB, oa->format_version,          _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"width\": %d,%c",   _CONDITION_TAB, oa->cols,                    _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"height\": %d,%c",  _CONDITION_TAB, oa->rows,                    _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"version\": %d,%c", _CONDITION_TAB, oa->format_version,              _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"timestamp\": %ld,%c", _CONDITION_TAB, tv.tv_sec,                    _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"width\": %d,%c",   _CONDITION_TAB, oa->cols,                        _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"height\": %d,%c",  _CONDITION_TAB, oa->rows,                        _CONDITION_NEWL);
 		WriteStdout_fprintf("%c\"command\": %s,%c", _CONDITION_TAB, oa->cmd ? oa->cmd : "\"\"",      _CONDITION_NEWL);
 		WriteStdout_fprintf("%c\"title\": %s,%c",   _CONDITION_TAB, oa->title ? oa->title : "\"\"",  _CONDITION_NEWL);
 		WriteStdout_fprintf("%c\"env\": %s%c%c",    _CONDITION_TAB, oa->env, oa->format_version == ASCIINEMA_V1 ? ',' : ' ', _CONDITION_NEWL);
