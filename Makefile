@@ -2,6 +2,11 @@ CC:=clang
 CFLAGS:=-std=c99 -Wall -O0 -g
 LFLAGS:=
 
+UNAME_S:=$(shell uname -s)
+ifeq ($(UNAME_S),FreeBSD)
+	LFLAGS+=-lexecinfo
+endif
+
 bin:=termrec
 obj:=obj
 

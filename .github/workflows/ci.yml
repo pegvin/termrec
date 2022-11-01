@@ -50,8 +50,11 @@ jobs:
       uses: vmactions/freebsd-vm@v0
       with:
         usesh: true
+        prepare: |
+          pkg install -y gmake git
+
         run: |
-          make all
+          gmake all
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2

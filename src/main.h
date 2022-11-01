@@ -26,8 +26,13 @@
 #include <signal.h>
 #include <signal.h>
 #include <termios.h>
-#include <sys/time.h>
 #include <sys/ioctl.h>
+
+#ifdef __FreeBSD__
+#include <time.h>
+#else
+#include <sys/time.h>
+#endif
 
 // For PATH_MAX
 #ifdef __linux__
