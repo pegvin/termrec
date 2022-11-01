@@ -5,12 +5,12 @@
 #define _POSIX_C_SOURCE 1
 
 #ifdef __APPLE__
-#define _DARWIN_C_SOURCE
+#define _DARWIN_C_SOURCE 1
 #endif
 
 #ifdef __FreeBSD__
-#define _BSD_SOURCE
-#define __BSD_VISIBLE
+#define _BSD_SOURCE 1
+#define __BSD_VISIBLE 1
 #endif
 
 #include <stdio.h>
