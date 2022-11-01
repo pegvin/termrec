@@ -1,10 +1,12 @@
 #include "writer.h"
 #include "xwrap.h"
+#include <string.h>
 
 FILE* outfile = NULL;
-fileformat_t FormatVersion = -1;
+struct outargs OA;
 
 FILE* WriterInit(const char* fileName) {
+	memset(&OA, 0, sizeof(struct outargs));
 	outfile = xfopen(fileName, "wb");
 	setbuf(outfile, NULL); // Set The Stream To Be Un-Buffered
 	return outfile;
@@ -17,8 +19,9 @@ FILE* WriterInit(const char* fileName) {
 */
 int WriteHeader(struct outargs* oa) {
 	if (oa == NULL || outfile == NULL) return -1;
+	if (oa->format_version == TERMREC_V1) return 0;
 
-	FormatVersion = oa->format_version;
+	memcpy(&OA, oa, sizeof(struct outargs));
 	if (oa->format_version == ASCIINEMA_V1 || oa->format_version == ASCIINEMA_V2) {
 		/* Write asciicast header and append events. Format defined at
 		 * v1 https://github.com/asciinema/asciinema/blob/master/doc/asciicast-v1.md
@@ -28,25 +31,20 @@ int WriteHeader(struct outargs* oa) {
 		 * ES (still) not supporting trailing commas.
 		 */
 
-		fprintf(outfile,
-			"{                              " // have room to write duration later
-			"\"version\": %d, "
-			"\"width\": %d, "
-			"\"height\": %d, "
-			"\"command\": \"%s\", "
-			"\"title\": \"%s\", "
-			"\"env\": %s",
-			oa->format_version,
-			oa->cols, oa->rows,
-			oa->cmd ? oa->cmd : "",
-			oa->title ? oa->title : "",
-			oa->env
-		);
+		#define _CONDITION_TAB oa->format_version == ASCIINEMA_V1 ? '\t' : ' '
+		#define _CONDITION_NEWL oa->format_version == ASCIINEMA_V1 ? '\n' : ' '
+		WriteStdout_fprintf("{                                                                     "); // Have Room For Putting Duration
+		WriteStdout_fprintf("%c\"version\": %d,%c", _CONDITION_TAB, oa->format_version,          _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"width\": %d,%c",   _CONDITION_TAB, oa->cols,                    _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"height\": %d,%c",  _CONDITION_TAB, oa->rows,                    _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"command\": %s,%c", _CONDITION_TAB, oa->cmd ? oa->cmd : "\"\"",      _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"title\": %s,%c",   _CONDITION_TAB, oa->title ? oa->title : "\"\"",  _CONDITION_NEWL);
+		WriteStdout_fprintf("%c\"env\": %s%c%c",    _CONDITION_TAB, oa->env, oa->format_version == ASCIINEMA_V1 ? ',' : ' ', _CONDITION_NEWL);
 
 		if (oa->format_version == ASCIINEMA_V1)
-			fprintf(outfile, ",\"stdout\":[[0,\"\"]\n"); // v1 header finished, console data is appended in structure
-		else
-			fprintf(outfile, "}\n"); // v2 header finished here, data will be appended in separate lines
+			WriteStdout_fprintf("\t\"stdout\": [\n\t\t[ 0, \"\" ],\n"); // v1 header finished, console data is appended in structure
+		else if (oa->format_version == ASCIINEMA_V2)
+			WriteStdout_fprintf("}\n[ 0, \"o\", \"\" ]\n");
 	}
 
 	return 0;
@@ -55,26 +53,40 @@ int WriteHeader(struct outargs* oa) {
 int WriteDuration(float duration) {
 	if (outfile == NULL) return -1;
 
-	// seeks to header, overwriting spaces with duration
-	fseek(outfile, 1L, SEEK_SET);
-	fprintf(outfile, "\"duration\": %.9g, ", duration);
-	fflush(outfile);
+	if (OA.format_version == ASCIINEMA_V1 || OA.format_version == ASCIINEMA_V2) {
+		// seeks to header, overwriting spaces with duration
+		size_t currPos = ftell(outfile);
+		fseek(outfile, 2L, SEEK_SET);
+		#define _CONDITION_NEWL OA.format_version == ASCIINEMA_V1 ? '\n' : ' '
+		fprintf(outfile, "%c\t\"duration\": %.9g,%c", _CONDITION_NEWL, duration, _CONDITION_NEWL);
+		fflush(outfile);
+		fseek(outfile, currPos, SEEK_SET);
+	}
 
 	return 0;
 }
 
 void WriterClose() {
-	if (FormatVersion == ASCIINEMA_V1) WriteStdout_fprintf("]}\n"); // closes stdout segment
+	if (OA.format_version == ASCIINEMA_V1) {
+		// Delete The Comma From Last Entry in "stdout" array
+		size_t currPos = ftell(outfile);
+		fseek(outfile, currPos - 2, SEEK_SET);
+		fputc(' ', outfile);
+		fseek(outfile, currPos, SEEK_SET);
+
+		WriteStdout_fprintf("\t]\n}\n"); // closes stdout segment
+	}
+
 	xfclose(outfile);
 	outfile = NULL;
 }
 
 void WriteStdoutStart(float duration) {
 	if (outfile) {
-		if (FormatVersion == ASCIINEMA_V1) {
-			fprintf(outfile, ",[%0.4f,\"", duration);
-		} else if (FormatVersion == ASCIINEMA_V2) {
-			fprintf(outfile, "[%0.4f,\"o\",\"", duration);
+		if (OA.format_version == ASCIINEMA_V1) {
+			WriteStdout_fprintf("\t\t[ %0.4f, \"", duration);
+		} else if (OA.format_version == ASCIINEMA_V2) {
+			WriteStdout_fprintf("[ %0.4f, \"o\", \"", duration);
 		}
 	}
 }
@@ -101,7 +113,11 @@ void WriteStdout_fputc(char character) {
 }
 
 void WriteStdoutEnd() {
-	if (outfile && (FormatVersion == ASCIINEMA_V1 || FormatVersion == ASCIINEMA_V2)) {
-		fputs("\"]\n", outfile);
+	if (outfile) {
+		if (OA.format_version == ASCIINEMA_V1) {
+			WriteStdout_fputs("\" ],\n");
+		} else if (OA.format_version == ASCIINEMA_V2) {
+			WriteStdout_fputs("\" ]\n");
+		}
 	}
 }
