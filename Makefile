@@ -10,7 +10,7 @@ endif
 bin:=termrec
 obj:=obj
 
-SRCS:=src/main.c src/terminal.c src/xwrap.c src/signals.c src/writer.c
+SRCS:=src/main.c src/terminal.c src/xwrap.c src/signals.c src/writer.c src/recorder.c src/play.c
 OBJS:=$(SRCS:.c=.o)
 
 all: $(bin)
