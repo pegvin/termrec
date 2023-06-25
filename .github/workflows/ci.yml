@@ -63,5 +63,26 @@ jobs:
         path: ./termrec
         if-no-files-found: error
 
+  openbsd-x86_64:
+    runs-on: macos-12
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Run OpenBSD VM & Build
+      id: termrec
+      uses: vmactions/openbsd-vm@v0
+      with:
+        usesh: true
+        prepare: |
+          pkg_add gmake
 
+        run: |
+          gmake all
 
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: openbsd-x86_64
+        path: ./termrec
+        if-no-files-found: error
