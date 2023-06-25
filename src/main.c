@@ -15,6 +15,11 @@ void PrintUsage(const char* name) {
 }
 
 int main(int argc, char** argv) {
+	if (argc <= 1) {
+		PrintUsage(argc < 1 ? "termrec" : argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
 	struct outargs oa;
 	memset(&oa, 0, sizeof oa);
 
