@@ -4,13 +4,13 @@
 #define _XOPEN_SOURCE 600
 #define _POSIX_C_SOURCE 1
 
-#ifdef __APPLE__
-#define _DARWIN_C_SOURCE 1
+#ifdef TARGET_OSX
+    #define _DARWIN_C_SOURCE 1
 #endif
 
-#ifdef __FreeBSD__
-#define _BSD_SOURCE 1
-#define __BSD_VISIBLE 1
+#ifdef TARGET_BSD
+    #define _BSD_SOURCE 1
+    #define __BSD_VISIBLE 1
 #endif
 
 #include <stdio.h>
@@ -28,8 +28,8 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#ifdef __FreeBSD__
-#include <time.h>
+#ifdef TARGET_BSD
+    #include <time.h>
 #else
 #include <sys/time.h>
 #endif

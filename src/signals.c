@@ -13,8 +13,6 @@
 
 #include <execinfo.h>
 #include <fcntl.h>
-
-#define __BSD_VISIBLE 1
 #include <signal.h>
 
 #include <termios.h>
