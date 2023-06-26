@@ -52,3 +52,5 @@ Mkfile.old
 dkms.conf
 termrec
 *.cast
+compile_commands.json
+.cache
