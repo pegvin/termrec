@@ -9,7 +9,7 @@ Terminal recorder written in r̶u̶s̶t c
 - UTF-8 Support
 - Asciinema V1 & V2 File Format Support
 - Not Written In Rust
-- Runs On Linux, Mac & BSD
+- Runs On Any Unix-Based System
 
 ---
 ## Building From Source
