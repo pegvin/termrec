@@ -150,7 +150,7 @@ jobs:
         mv ./freebsd-x86_64/termrec ./termrec-freebsd-x86_64
         mv ./openbsd-x86_64/termrec ./termrec-openbsd-x86_64
         mv ./netbsd-x86_64/termrec ./termrec-netbsd-x86_64
-        mv ./osx-x86_64/termrec ./termrec-osx-x86_64
+        mv ./mac-x86_64/termrec ./termrec-mac-x86_64
 
     - uses: ncipollo/release-action@v1
       with:
@@ -167,5 +167,5 @@ jobs:
           ./termrec-freebsd-x86_64
           ./termrec-openbsd-x86_64
           ./termrec-netbsd-x86_64
-          ./termrec-osx-x86_64
+          ./termrec-mac-x86_64
 
