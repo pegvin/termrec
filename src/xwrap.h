@@ -1,9 +1,8 @@
 #ifndef XWRAP_H
 #define XWRAP_H 1
 
-#ifndef __FreeBSD__
-	#define _XOPEN_SOURCE 600 // For Structs Like "sigaction"
-#endif
+#define _XOPEN_SOURCE 600 // For Structs Like "sigaction"
+#define _BSD_SOURCE 1
 
 #define _POSIX_C_SOURCE 199309L
 // Maybe Needed on Mac for `SIGWINCH`
