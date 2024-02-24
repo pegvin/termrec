@@ -1,5 +1,11 @@
 #define _XOPEN_SOURCE 600
 
+#include "xwrap.h"
+#include "main.h"
+#include "writer.h"
+#include "terminal.h"
+#include "recorder.h"
+
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
@@ -8,12 +14,6 @@
 
 // For PATH_MAX
 #include <limits.h>
-
-#include "main.h"
-#include "writer.h"
-#include "xwrap.h"
-#include "terminal.h"
-#include "recorder.h"
 
 #include "utf8.h"
 
