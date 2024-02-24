@@ -48,7 +48,7 @@ jobs:
           /usr/sbin/pkg_add gmake
 
         run: |
-          gmake all BUILD_TYPE=Release CC=clang
+          gmake all BUILD_TYPE=Release CC=gcc
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
