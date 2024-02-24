@@ -22,11 +22,6 @@
 	#include <sys/time.h>
 #endif
 
-// For PATH_MAX
-#ifdef __linux__
-	#include <linux/limits.h>
-#endif
-
 void die(const char *s); // Used In Other Files Too
 
 #endif

@@ -6,6 +6,9 @@
 #include <errno.h>
 #include <inttypes.h>
 
+// For PATH_MAX
+#include <limits.h>
+
 #include "main.h"
 #include "writer.h"
 #include "xwrap.h"
