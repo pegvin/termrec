@@ -3,6 +3,7 @@
 
 #define _XOPEN_SOURCE 600 // For Structs Like "sigaction"
 #define _BSD_SOURCE 1
+#define __BSD_VISIBLE 1
 
 #define _POSIX_C_SOURCE 200809L
 // Maybe Needed on Mac for `SIGWINCH`
