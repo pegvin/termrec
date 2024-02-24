@@ -4,7 +4,7 @@
 #define _XOPEN_SOURCE 600 // For Structs Like "sigaction"
 #define _BSD_SOURCE 1
 
-#define _POSIX_C_SOURCE 199309L
+#define _POSIX_C_SOURCE 200809L
 // Maybe Needed on Mac for `SIGWINCH`
 #define _DARWIN_C_SOURCE 1
 #include <signal.h>
