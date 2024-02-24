@@ -76,7 +76,9 @@ void RecordSession(struct outargs oa) {
 
 		if (subchild) {
 			/* Handle output to file in parent */
-			xclose(controlfd[1]);
+			if (close(controlfd[1]) == -1) {
+				die("close");
+			}
 			StartOutputProcess(&oa);
 		} else {
 			char *shell = getenv("SHELL");
@@ -85,15 +87,21 @@ void RecordSession(struct outargs oa) {
 			}
 
 			/* Shell process doesn't need these */
-			xclose(controlfd[0]);
-			xclose(controlfd[1]);
+			if (close(controlfd[0]) == -1) {
+				die("close");
+			}
+			if (close(controlfd[1]) == -1) {
+				die("close");
+			}
 
 			/* Run the shell in the child */
 			StartChildShell(shell, exec_cmd, &win, masterfd);
 		}
 	}
 
-	xclose(controlfd[0]);
+	if (close(controlfd[0]) == -1) {
+		die("close");
+	}
 	ProcessInputs(masterfd, controlfd[1]); // "Main Loop"
 
 	signal(SIGWINCH, NULL);
@@ -230,14 +238,18 @@ static void handle_command(enum control_command cmd) {
 		 * written to the master end of the tty, otherwise it's 
 		 * ignored.
 		 */
-		xwrite(master, &c_a, 1);
+		if (write(master, &c_a, 1) == -1) {
+			die("write");
+		}
 		break;
 
 	case CMD_PAUSE:
 		paused = !paused;
 		if (!paused) {
 			/* Redraw screen */
-			xwrite(master, &c_l, 1);
+			if (write(master, &c_l, 1) == -1) {
+				die("write");
+			}
 			gettimeofday(&prevtv, NULL);
 			nowtv = prevtv;
 		}
@@ -329,7 +341,9 @@ void StartOutputProcess(struct outargs *oa) {
 	WriterInit(oa->fileName);
 	WriteHeader(oa);
 
-	xclose(STDIN_FILENO);
+	if (close(STDIN_FILENO) == -1) {
+		die("close");
+	}
 
 	printf("\x1b[2J"); // Clear screen
 	printf("\x1b[H");  // Move cursor to top-left
@@ -392,7 +406,9 @@ void StartOutputProcess(struct outargs *oa) {
 					goto end;
 				}
 
-				xwrite(STDOUT_FILENO, obuf, nread);
+				if (write(STDOUT_FILENO, obuf, nread) == -1) {
+					die("write");
+				}
 
 				if (!paused) {
 					handle_input(obuf, nread, oa->format_version);
@@ -404,7 +420,9 @@ void StartOutputProcess(struct outargs *oa) {
 end:
 	WriteDuration(dur / 1000);
 	WriterClose();
-	xclose(oa->masterfd);
+	if (close(oa->masterfd) == -1) {
+		die("close");
+	}
 
 	printf("Session Recorded Successfully!\r\n");
 	exit(status);
@@ -430,14 +448,20 @@ void ProcessInputs(int masterfd, int controlfd) {
 			case STATE_PASSTHROUGH: {
 				if (cmdstart) {
 					// Switching into command mode: pass through anything preceding our command
-					if (cmdstart > ibuf) xwrite(masterfd, ibuf, cmdstart - ibuf);
+					if (cmdstart > ibuf) {
+						if (write(masterfd, ibuf, cmdstart - ibuf) == -1) {
+							die("write");
+						}
+					}
 
 					cmdstart++;
 					nread -= (cmdstart - ibuf);
 					p = cmdstart;
 					input_state = STATE_COMMAND;
 				}
-				xwrite(masterfd, ibuf, nread);
+				if (write(masterfd, ibuf, nread) == -1) {
+					die("write");
+				}
 				break;
 			}
 			// If The Input is a Command Check Which Command It Is And If Unknown Just Write To The Master If Known Just Execute It
@@ -460,11 +484,15 @@ void ProcessInputs(int masterfd, int controlfd) {
 					}
 
 					if (cmd != CMD_NONE) {
-						xwrite(controlfd, &cmd, sizeof cmd);
+						if (write(controlfd, &cmd, sizeof cmd) == -1) {
+							die("write");
+						}
 					}
 
 					if (nread > 1) {
-						xwrite(masterfd, p + 1, nread - 1);
+						if (write(masterfd, p + 1, nread - 1) == -1) {
+							die("write");
+						}
 					}
 
 					input_state = STATE_PASSTHROUGH;
@@ -521,13 +549,17 @@ void StartChildShell(const char *shell, const char *exec_cmd, struct winsize *wi
 		goto end;
 	}
 
-	xclose(masterfd);
+	if (close(masterfd) == -1) {
+		die("close");
+	}
 
 	xdup2(slavefd, 0);
 	xdup2(slavefd, 1);
 	xdup2(slavefd, 2);
 
-	xclose(slavefd);
+	if (close(slavefd) == -1) {
+		die("close");
+	}
 
 	if (!exec_cmd) {
 		execl(shell, strrchr(shell, '/') + 1, "-i", NULL);

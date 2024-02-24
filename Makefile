@@ -6,7 +6,7 @@ BUILD      := build
 BUILD_TYPE := Debug
 BIN        := $(BUILD)/termrec
 
-SOURCES    := src/main.c src/terminal.c src/signals.c src/writer.c src/recorder.c src/xwrap.c src/play.c
+SOURCES    := src/main.c src/terminal.c src/signals.c src/writer.c src/recorder.c src/play.c src/xwrap.c
 OBJECTS    := $(SOURCES:.c=.c.o)
 OBJECTS    := $(patsubst %,$(BUILD)/%,$(OBJECTS))
 DEPENDS    := $(OBJECTS:.o=.d)

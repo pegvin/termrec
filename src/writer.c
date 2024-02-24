@@ -8,7 +8,10 @@ struct outargs OA;
 
 FILE* WriterInit(const char* fileName) {
 	memset(&OA, 0, sizeof(struct outargs));
-	outfile = xfopen(fileName, "wb");
+	outfile = fopen(fileName, "wb");
+	if (outfile == NULL) {
+		die("fopen");
+	}
 	setbuf(outfile, NULL); // Set The Stream To Be Un-Buffered
 	return outfile;
 }
@@ -36,6 +39,7 @@ int WriteHeader(struct outargs* oa) {
 
 		#define _CONDITION_TAB oa->format_version == ASCIINEMA_V1 ? '\t' : ' '
 		#define _CONDITION_NEWL oa->format_version == ASCIINEMA_V1 ? '\n' : ' '
+
 		WriteStdout_fprintf("{                                                                     "); // Have Room For Putting Duration
 		WriteStdout_fprintf("%c\"version\": %d,%c", _CONDITION_TAB, oa->format_version,              _CONDITION_NEWL);
 		WriteStdout_fprintf("%c\"timestamp\": %ld,%c", _CONDITION_TAB, tv.tv_sec,                    _CONDITION_NEWL);
@@ -44,6 +48,9 @@ int WriteHeader(struct outargs* oa) {
 		WriteStdout_fprintf("%c\"command\": %s,%c", _CONDITION_TAB, oa->cmd ? oa->cmd : "\"\"",      _CONDITION_NEWL);
 		WriteStdout_fprintf("%c\"title\": %s,%c",   _CONDITION_TAB, oa->title ? oa->title : "\"\"",  _CONDITION_NEWL);
 		WriteStdout_fprintf("%c\"env\": %s%c%c",    _CONDITION_TAB, oa->env, oa->format_version == ASCIINEMA_V1 ? ',' : ' ', _CONDITION_NEWL);
+
+		#undef _CONDITION_TAB
+		#undef _CONDITION_NEWL
 
 		if (oa->format_version == ASCIINEMA_V1)
 			WriteStdout_fprintf("\t\"stdout\": [\n\t\t[ 0, \"\" ],\n"); // v1 header finished, console data is appended in structure
@@ -61,8 +68,11 @@ int WriteDuration(float duration) {
 		// seeks to header, overwriting spaces with duration
 		size_t currPos = ftell(outfile);
 		fseek(outfile, 2L, SEEK_SET);
+
 		#define _CONDITION_NEWL OA.format_version == ASCIINEMA_V1 ? '\n' : ' '
 		fprintf(outfile, "%c\t\"duration\": %.9g,%c", _CONDITION_NEWL, duration, _CONDITION_NEWL);
+		#undef _CONDITION_NEWL
+
 		fflush(outfile);
 		fseek(outfile, currPos, SEEK_SET);
 	}
@@ -81,7 +91,9 @@ void WriterClose() {
 		WriteStdout_fprintf("\t]\n}\n"); // closes stdout segment
 	}
 
-	xfclose(outfile);
+	if (fclose(outfile) == -1) {
+		die("fclose");
+	}
 	outfile = NULL;
 }
 
