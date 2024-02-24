@@ -1,8 +1,13 @@
 #ifndef XWRAP_H
 #define XWRAP_H 1
 
-#define _XOPEN_SOURCE 600 // For Structs Like "sigaction"
+#ifndef __FreeBSD__
+	#define _XOPEN_SOURCE 600 // For Structs Like "sigaction"
+#endif
+
 #define _POSIX_C_SOURCE 199309L
+// Maybe Needed on Mac for `SIGWINCH`
+#define _DARWIN_C_SOURCE 1
 #include <signal.h>
 #include <termios.h>
 
