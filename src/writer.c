@@ -1,6 +1,7 @@
 #include "writer.h"
 #include "main.h"
 #include <string.h>
+#include <sys/time.h>
 
 FILE* outfile = NULL;
 struct outargs OA;
