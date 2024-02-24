@@ -1,6 +1,31 @@
-CC:=clang
-CFLAGS:=-std=c99 -Wall -O0 -g
+CC:=gcc
+CFLAGS:=-std=c99 -Wall -MMD -MP
 LFLAGS:=
+
+BUILD      := build
+BUILD_TYPE := Debug
+BIN        := $(BUILD)/termrec
+
+# Comment This out if you don't want to/don't have bear Installed
+# Bear is a lovely utility to generate 'compile_commands.json'
+# which then your LSP can use to provide code completions.
+# https://github.com/rizsotto/Bear
+BEAR       := bear --append --output $(BUILD)/compile_commands.json --
+
+SOURCES    := src/main.c src/terminal.c src/signals.c src/writer.c src/recorder.c src/xwrap.c src/play.c
+OBJECTS    := $(SOURCES:.c=.c.o)
+OBJECTS    := $(patsubst %,$(BUILD)/%,$(OBJECTS))
+DEPENDS    := $(OBJECTS:.o=.d)
+
+ifeq ($(BUILD_TYPE),Debug)
+	CFLAGS+=-O0 -g
+else
+	ifeq ($(BUILD_TYPE),Release)
+		CFLAGS+=-O3
+	else
+$(error Unknown Build Type "$(BUILD_TYPE)")
+	endif
+endif
 
 UNAME_S:=$(shell uname -s)
 
@@ -15,33 +40,25 @@ ifeq ($(UNAME_S),Darwin)
 	CFLAGS+=-DTARGET_OSX=1
 endif
 
-bin:=termrec
-obj:=obj
+-include $(DEPENDS)
 
-SRCS:=src/main.c src/terminal.c src/xwrap.c src/signals.c src/writer.c src/recorder.c src/play.c
-OBJS:=$(subst .c,.c.o,$(SRCS))
+all: $(BIN)
 
-all: $(bin)
+$(BUILD)/%.c.o: %.c
+	@echo "CC -" $<
+	@mkdir -p "$$(dirname "$@")"
+	@$(BEAR) $(CC) $(CFLAGS) -c $< -o $@
 
-%.c.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(bin): $(OBJS)
-	@bear --append -- $(CC) $(CFLAGS) $(LFLAGS) $(OBJS) -o $@
-	$(CC) $(CFLAGS) $(LFLAGS) $(OBJS) -o $@
-
-# Install https://github.com/rizsotto/Bear to generate "compile_commands.json"
-# Only neccessary if you want to use it with clangd or something.
-bear:
-	@for source in $(SRCS); do\
-		bear --append -- $(CC) $(CFLAGS) -c $$source -o $$source.o ;\
-	done
+$(BIN): $(OBJECTS)
+	@echo "LD -" $@
+	@$(CC) $(OBJECTS) $(LFLAGS) -o $@
 
 .PHONY: run
 .PHONY: clean
 
-run: $(all)
-	./$(bin)
+run: all
+	@./$(BIN)
 
 clean:
-	$(RM) $(bin) $(OBJS)
+	@$(RM) -rv $(BIN) $(BUILD)
+
