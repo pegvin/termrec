@@ -54,7 +54,7 @@ jobs:
           pkg install -y gmake git
 
         run: |
-          gmake all
+          gmake all CC=clang
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
@@ -78,7 +78,7 @@ jobs:
           pkg_add gmake
 
         run: |
-          gmake all
+          gmake all CC=clang
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
