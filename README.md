@@ -1,15 +1,21 @@
 # termrec
-Terminal recorder written in r̶u̶s̶t c
+Terminal recorder written in c
 
 ---
 ## Features
 - Extremely Fast
 - Extremely Small Size (~52kb)
-- 0 External Libraries (Only Posix Standard Stuff)
+- 0 External Libraries (Except Posix standard stuff)
 - UTF-8 Support
 - Asciinema V1 & V2 File Format Support
 - Not Written In Rust
 - Runs On Any Unix-Based System
+
+---
+## Todo
+- [ ] Address issue #3
+- [ ] Implement a custom file format with compression
+- [ ] Implement some sort of renderer
 
 ---
 ## Building From Source
