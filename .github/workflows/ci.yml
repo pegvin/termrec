@@ -19,7 +19,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: linux-x86_64
-        path: ./termrec
+        path: ./build/
         if-no-files-found: error
 
   mac-x86_64:
@@ -36,7 +36,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: mac-x86_64
-        path: ./termrec
+        path: ./build/
         if-no-files-found: error
 
   freebsd-x86_64:
@@ -60,7 +60,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: feeebsd-x86_64
-        path: ./termrec
+        path: ./build/
         if-no-files-found: error
 
   openbsd-x86_64:
@@ -84,5 +84,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: openbsd-x86_64
-        path: ./termrec
+        path: ./build/
         if-no-files-found: error
+
