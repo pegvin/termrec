@@ -6,8 +6,8 @@
 #endif
 
 #ifdef TARGET_BSD
-    #define _BSD_SOURCE 1
-    #define __BSD_VISIBLE 1
+	#define _BSD_SOURCE 1
+	#define _XOPEN_SOURCE 600
 #endif
 
 #include <poll.h>
