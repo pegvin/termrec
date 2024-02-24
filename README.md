@@ -18,5 +18,8 @@ Terminal recorder written in r̶u̶s̶t c
 2. Change Current Directory To The Cloned One: `cd termrec`
 3. Compile Via [GNU Make](https://www.gnu.org/software/make/): `make all`
 
+(Yeah, This was recorded using `termrec`)
+[![How To Compile `termrec`](https://asciinema.org/a/642682.svg)](https://asciinema.org/a/642682)
+
 ---
 # Thanks
