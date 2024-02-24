@@ -104,7 +104,7 @@ jobs:
         if-no-files-found: error
 
   update-ci-release:
-    needs: [build]
+    needs: [linux-x86_64, mac-x86_64, netbsd-x86_64, freebsd-x86_64, openbsd-x86_64]
     permissions:
       contents: write
     if: |
