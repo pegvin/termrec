@@ -103,3 +103,69 @@ jobs:
         path: ./build/
         if-no-files-found: error
 
+  update-ci-release:
+    needs: [build]
+    permissions:
+      contents: write
+    if: |
+      github.event_name == 'push' ||
+      github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - uses: dev-drprasad/delete-tag-and-release@v0.2.1
+      with:
+        tag_name: nightly
+        delete_release: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: linux-x86_64
+        path: ./linux-x86_64/
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: openbsd-x86_64
+        path: ./openbsd-x86_64/
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: freebsd-x86_64
+        path: ./freebsd-x86_64/
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: netbsd-x86_64
+        path: ./netbsd-x86_64/
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: mac-x86_64
+        path: ./mac-x86_64/
+
+    - name: Rename
+      run: |
+        mv ./linux-x86_64/termrec ./termrec-linux-x86_64
+        mv ./freebsd-x86_64/termrec ./termrec-freebsd-x86_64
+        mv ./openbsd-x86_64/termrec ./termrec-openbsd-x86_64
+        mv ./netbsd-x86_64/termrec ./termrec-netbsd-x86_64
+        mv ./osx-x86_64/termrec ./termrec-osx-x86_64
+
+    - uses: ncipollo/release-action@v1
+      with:
+        name: "Termrec dev build"
+        body: "this release is not for daily use."
+        tag: "nightly"
+        commit: "master"
+        prerelease: true
+        allowUpdates: true
+        generateReleaseNotes: true
+        artifactErrorsFailBuild: true
+        artifacts: |
+          ./termrec-linux-x86_64
+          ./termrec-freebsd-x86_64
+          ./termrec-openbsd-x86_64
+          ./termrec-netbsd-x86_64
+          ./termrec-osx-x86_64
+
