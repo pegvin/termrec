@@ -24,8 +24,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	struct outargs oa;
-	memset(&oa, 0, sizeof oa);
+	struct outargs oa = {0};
 
 	unsigned char i = 1;
 
@@ -49,8 +48,8 @@ int main(int argc, char** argv) {
 		if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--format") == 0) {
 			if (i == argc - 1) { printf("No file-format name specified!\n"); exit(EXIT_FAILURE); }
 			const char* format = argv[i + 1];
-			if (strcmp(format, "asciinema_v1") == 0) oa.format_version = ASCIINEMA_V1;
-			else if (strcmp(format, "asciinema_v2") == 0) oa.format_version = ASCIINEMA_V2;
+			if (strcmp(format, "asciinema_v1") == 0) oa.format = ASCIINEMA_V1;
+			else if (strcmp(format, "asciinema_v2") == 0) oa.format = ASCIINEMA_V2;
 			else { printf("Invalid file-format specified!\n"); exit(EXIT_FAILURE); }
 		}
 	}

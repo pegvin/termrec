@@ -10,21 +10,23 @@ enum control_command {
 typedef enum {
 	TERMREC_PLAY = 1,
 	TERMREC_RECORD
-} trMode_t;
+} AppMode;
 
 typedef enum {
 	ASCIINEMA_V1 = 1,
 	ASCIINEMA_V2 = 2
-} fileformat_t;
+} FileFormat;
 
 struct outargs {
 	int start_paused;
 	int controlfd;
 	int masterfd;
-	int rows;
-	int cols;
-	fileformat_t format_version;
-	trMode_t mode;
+
+	// Terminal Rows/Columns
+	int rows, cols;
+
+	AppMode mode;
+	FileFormat format;
 
 	const char* cmd;
 	const char* env;

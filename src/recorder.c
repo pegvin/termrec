@@ -48,7 +48,7 @@ void RecordSession(struct outargs oa) {
 	oa.env = SerializeEnv();
 	exec_cmd = NULL;
 
-	if (!oa.format_version) oa.format_version = ASCIINEMA_V1;
+	if (!oa.format) oa.format = ASCIINEMA_V1;
 	if (!oa.fileName) oa.fileName = "events.cast";
 
 	if (pipe(controlfd) != 0) die("pipe");
@@ -278,8 +278,8 @@ static void handle_command(enum control_command cmd) {
 }
 
 // This Function Is Responsible For Writing The Data To The File
-static inline void handle_input(unsigned char *buf, size_t buflen, fileformat_t format_version) {
-	assert(format_version >= ASCIINEMA_V1 && format_version <= ASCIINEMA_V2);
+static inline void handle_input(unsigned char *buf, size_t buflen, FileFormat format) {
+	assert(format >= ASCIINEMA_V1 && format <= ASCIINEMA_V2);
 	static int first = 1;
 	double delta;
 
@@ -300,7 +300,7 @@ static inline void handle_input(unsigned char *buf, size_t buflen, fileformat_t 
 
 	dur += delta;
 
-	WriteStdoutStart((format_version == ASCIINEMA_V1 ? delta : dur) / 1000);
+	WriteStdoutStart((format == ASCIINEMA_V1 ? delta : dur) / 1000);
 
 	uint32_t state, cp;
 	state = 0;
@@ -350,7 +350,7 @@ void StartOutputProcess(struct outargs *oa) {
 	status = EXIT_SUCCESS;
 	master = oa->masterfd;
 
-	assert(oa->format_version >= ASCIINEMA_V1 && oa->format_version <= ASCIINEMA_V2);
+	assert(oa->format >= ASCIINEMA_V1 && oa->format <= ASCIINEMA_V2);
 
 	start_paused = paused = oa->start_paused;
 
@@ -428,7 +428,7 @@ void StartOutputProcess(struct outargs *oa) {
 				}
 
 				if (!paused) {
-					handle_input(obuf, nread, oa->format_version);
+					handle_input(obuf, nread, oa->format);
 				}
 			}
 		}
