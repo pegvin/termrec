@@ -6,16 +6,21 @@ BUILD      := build
 BUILD_TYPE := Debug
 BIN        := $(BUILD)/termrec
 
-# Comment This out if you don't want to/don't have bear Installed
-# Bear is a lovely utility to generate 'compile_commands.json'
-# which then your LSP can use to provide code completions.
-# https://github.com/rizsotto/Bear
-BEAR       := bear --append --output $(BUILD)/compile_commands.json --
-
 SOURCES    := src/main.c src/terminal.c src/signals.c src/writer.c src/recorder.c src/xwrap.c src/play.c
 OBJECTS    := $(SOURCES:.c=.c.o)
 OBJECTS    := $(patsubst %,$(BUILD)/%,$(OBJECTS))
 DEPENDS    := $(OBJECTS:.o=.d)
+
+# Check if `bear` command is available, Bear is used to generate
+# `compile_commands.json` for your LSP to use, but can be disabled
+# in command line by `make all BEAR=''`
+# URL: github.com/rizsotto/Bear
+# Note: Using multiple jobs with bear is not supported, i.e.
+#       `make all -j4` won't work with bear enabled
+BEAR :=
+ifneq (, $(shell which bear))
+	BEAR:=bear --append --output $(BUILD)/compile_commands.json --
+endif
 
 ifeq ($(BUILD_TYPE),Debug)
 	CFLAGS+=-O0 -g
