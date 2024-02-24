@@ -1,5 +1,5 @@
 # termrec
-Terminal recorder written in c
+pronounced *turmeric*, Termrec is a fast & tiny terminal session recorder written in c
 
 ---
 ## Features
@@ -8,7 +8,6 @@ Terminal recorder written in c
 - 0 External Libraries (Except Posix standard stuff)
 - UTF-8 Support
 - Asciinema V1 & V2 File Format Support
-- Not Written In Rust
 - Runs On Any Unix-Based System
 
 ---
