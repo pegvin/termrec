@@ -6,7 +6,7 @@ pronounced *turmeric*, Termrec is a fast & tiny terminal session recorder writte
 - Extremely Fast & Small in Size (~52kb)
 - 0 External Libraries (Except Posix standard stuff)
 - UTF-8 Support
-- Asciinema V1 & V2 File Format Support
+- ONLY Asciinema V1 Format Support
 - Runs On Any Unix-Based System
 
 ---

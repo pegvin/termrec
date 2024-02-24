@@ -1,6 +1,8 @@
 #ifndef RECORD_H
 #define RECORD_H 1
 
+#include <stdint.h>
+
 enum control_command {
 	CMD_NONE,
 	CMD_CTRL_A,
@@ -12,26 +14,20 @@ typedef enum {
 	TERMREC_RECORD
 } AppMode;
 
-typedef enum {
-	ASCIINEMA_V1 = 1,
-	ASCIINEMA_V2 = 2
-} FileFormat;
+struct Recording {
+	uint32_t    width;  // cols
+	uint32_t    height; // rows
+	uint64_t    timestamp;
+	const char* env;
+	const char* filePath;
+};
 
 struct outargs {
 	int start_paused;
 	int controlfd;
 	int masterfd;
-
-	// Terminal Rows/Columns
-	int rows, cols;
-
 	AppMode mode;
-	FileFormat format;
-
-	const char* cmd;
-	const char* env;
-	const char* title;
-	const char* fileName;
+	struct Recording rec;
 };
 
 #endif

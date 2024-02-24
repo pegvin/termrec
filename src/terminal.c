@@ -2,12 +2,12 @@
 #include "terminal.h"
 #include "main.h"
 
-struct termios OriginalTermIOS;
+static struct termios InitialAttribs;
 
 void TermEnableRawMode() {
-	if (tcgetattr(STDIN_FILENO, &OriginalTermIOS) == -1) die("tcgetattr");
+	if (tcgetattr(STDIN_FILENO, &InitialAttribs) == -1) die("tcgetattr");
 
-	struct termios raw = OriginalTermIOS;
+	struct termios raw = InitialAttribs;
 
 	raw.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|INLCR|IGNCR|ICRNL|IXON);
 	raw.c_oflag &= ~OPOST;
@@ -21,7 +21,7 @@ void TermEnableRawMode() {
 }
 
 void TermDisableRawMode() {
-	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &OriginalTermIOS) == -1)
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &InitialAttribs) == -1)
 		die("tcsetattr");
 }
 

@@ -3,137 +3,81 @@
 #include <string.h>
 #include <sys/time.h>
 
-FILE* outfile = NULL;
-struct outargs OA;
-
-FILE* WriterInit(const char* fileName) {
-	memset(&OA, 0, sizeof(struct outargs));
-	outfile = fopen(fileName, "wb");
-	if (outfile == NULL) {
+FILE* Writer_Init(const char* filePath) {
+	FILE* f = fopen(filePath, "wb");
+	if (f == NULL) {
 		die("fopen");
 	}
-	setbuf(outfile, NULL); // Set The Stream To Be Un-Buffered
-	return outfile;
+	setbuf(f, NULL); // Set The Stream To Be Un-Buffered
+	return f;
 }
 
-/*
-	Function: WriteHeader()
-	Description: Inits The Data Writer Which Is A Wrapper To Write Files in Multiple Formats
-	Remarks: Returns Zero On Success & Negative One On Errors
-*/
-int WriteHeader(struct outargs* oa) {
-	if (oa == NULL || outfile == NULL) return -1;
+int Writer_WriteHeader(FILE* file, const struct Recording* rec) {
+	if (file == NULL || rec == NULL) return -1;
 
-	memcpy(&OA, oa, sizeof(struct outargs));
-	if (oa->format == ASCIINEMA_V1 || oa->format == ASCIINEMA_V2) {
-		/* Write asciicast header and append events. Format defined at
-		 * v1 https://github.com/asciinema/asciinema/blob/master/doc/asciicast-v1.md
-		 * v2 https://github.com/asciinema/asciinema/blob/master/doc/asciicast-v2.md
-		 *
-		 * With v1, we insert an empty first record to avoid the hassle of dealing with
-		 * ES (still) not supporting trailing commas.
-		 */
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
 
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-
-		#define _CONDITION_TAB oa->format == ASCIINEMA_V1 ? '\t' : ' '
-		#define _CONDITION_NEWL oa->format == ASCIINEMA_V1 ? '\n' : ' '
-
-		WriteStdout_fprintf("{                                                                     "); // Have Room For Putting Duration
-		WriteStdout_fprintf("%c\"version\": %d,%c", _CONDITION_TAB, oa->format,              _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"timestamp\": %ld,%c", _CONDITION_TAB, tv.tv_sec,                    _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"width\": %d,%c",   _CONDITION_TAB, oa->cols,                        _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"height\": %d,%c",  _CONDITION_TAB, oa->rows,                        _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"command\": %s,%c", _CONDITION_TAB, oa->cmd ? oa->cmd : "\"\"",      _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"title\": %s,%c",   _CONDITION_TAB, oa->title ? oa->title : "\"\"",  _CONDITION_NEWL);
-		WriteStdout_fprintf("%c\"env\": %s%c%c",    _CONDITION_TAB, oa->env, oa->format == ASCIINEMA_V1 ? ',' : ' ', _CONDITION_NEWL);
-
-		#undef _CONDITION_TAB
-		#undef _CONDITION_NEWL
-
-		if (oa->format == ASCIINEMA_V1)
-			WriteStdout_fprintf("\t\"stdout\": [\n\t\t[ 0, \"\" ],\n"); // v1 header finished, console data is appended in structure
-		else if (oa->format == ASCIINEMA_V2)
-			WriteStdout_fprintf("}\n[ 0, \"o\", \"\" ]\n");
-	}
+	fprintf(
+		file,
+		"{\n"
+		"\t\"version\": 1,\n"
+		"\t\"timestamp\": %ld,\n"
+		"\t\"width\": %d,\n"
+		"\t\"height\": %d,\n"
+		"\t\"command\": \"\",\n"
+		"\t\"title\": \"\",\n"
+		"\t\"env\": %s,\n"
+		"\t\"stdout\": [\n\t\t[ 0, \"\" ],\n", // v1 header finished, console data is appended in structure
+		tv.tv_sec,
+		rec->width,
+		rec->height,
+		rec->env
+	);
 
 	return 0;
 }
 
-int WriteDuration(float duration) {
-	if (outfile == NULL) return -1;
+int Writer_WriteDuration(FILE* file, float duration) {
+	if (file == NULL) return -1;
 
-	if (OA.format == ASCIINEMA_V1 || OA.format == ASCIINEMA_V2) {
-		// seeks to header, overwriting spaces with duration
-		size_t currPos = ftell(outfile);
-		fseek(outfile, 2L, SEEK_SET);
+	// Go back 6 characters and replace the ',' at that
+	// position to a ' ', as the item before it would be
+	// the end of the JSON Array, so extraneous ',' would
+	// cause syntax error
+	size_t curr = ftell(file);
+	fseek(file, curr - 6, SEEK_SET);
+	fputc(' ', file);
+	fseek(file, curr, SEEK_SET);
 
-		#define _CONDITION_NEWL OA.format == ASCIINEMA_V1 ? '\n' : ' '
-		fprintf(outfile, "%c\t\"duration\": %.9g,%c", _CONDITION_NEWL, duration, _CONDITION_NEWL);
-		#undef _CONDITION_NEWL
-
-		fflush(outfile);
-		fseek(outfile, currPos, SEEK_SET);
-	}
+	fprintf(file, "\t\"duration\": %.9g\n", duration);
 
 	return 0;
 }
 
-void WriterClose() {
-	if (OA.format == ASCIINEMA_V1) {
-		// Delete The Comma From Last Entry in "stdout" array
-		size_t currPos = ftell(outfile);
-		fseek(outfile, currPos - 2, SEEK_SET);
-		fputc(' ', outfile);
-		fseek(outfile, currPos, SEEK_SET);
-
-		WriteStdout_fprintf("\t]\n}\n"); // closes stdout segment
-	}
-
-	if (fclose(outfile) == -1) {
+void Writer_Close(FILE* file) {
+	fputs("}\n", file);
+	if (fclose(file) == -1) {
 		die("fclose");
 	}
-	outfile = NULL;
 }
 
-void WriteStdoutStart(float duration) {
-	if (outfile) {
-		if (OA.format == ASCIINEMA_V1) {
-			WriteStdout_fprintf("\t\t[ %0.4f, \"", duration);
-		} else if (OA.format == ASCIINEMA_V2) {
-			WriteStdout_fprintf("[ %0.4f, \"o\", \"", duration);
-		}
-	}
+void Writer_OnBeforeStdoutData(FILE* file, float duration) {
+	fprintf(file, "\t\t[ %0.4f, \"", duration);
 }
 
-void WriteStdout_fprintf(const char* fmt, ...) {
-	if (outfile) {
-	    va_list args;
-	    va_start(args, fmt);
-	    vfprintf(outfile, fmt, args);
-		va_end(args);
-	}
+void Writer_OnStdoutData(FILE* file, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(file, fmt, args);
+	va_end(args);
 }
 
-void WriteStdout_fputs(const char* str) {
-	if (outfile) {
-		fputs(str, outfile);
-	}
+void Writer_OnAfterStdoutData(FILE* file) {
+	fputs("\" ],\n", file);
 }
 
-void WriteStdout_fputc(char character) {
-	if (outfile) {
-		fputc(character, outfile);
-	}
-}
-
-void WriteStdoutEnd() {
-	if (outfile) {
-		if (OA.format == ASCIINEMA_V1) {
-			WriteStdout_fputs("\" ],\n");
-		} else if (OA.format == ASCIINEMA_V2) {
-			WriteStdout_fputs("\" ]\n");
-		}
-	}
+void Writer_OnStdoutAllEnd(FILE* file) {
+	// closes stdout segment
+	fprintf(file, "\t],\n");
 }

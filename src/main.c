@@ -13,9 +13,8 @@ int masterfd;
 pid_t child;
 
 void PrintUsage(const char* name) {
-	printf("Usage: %s [command] [session-path] [options]\n\n", name);
-	printf("[command]\n  - play: play a session\n  - rec: record a session\n  - help: shows help message\n\n");
-	printf("[options]\n  -f, --format: file-format of the session being played (default asciinema_v1)\n                valid formats are: asciinema_v1, asciinema_v2\n");
+	printf("Usage: %s [command] [session-path]\n\n", name);
+	printf("[command]\n  - play: play a session\n  - rec: record a session\n  - help: shows help message\n");
 }
 
 int main(int argc, char** argv) {
@@ -31,27 +30,17 @@ int main(int argc, char** argv) {
 	if (strcmp(argv[i], "rec") == 0) {
 		if (i == argc - 1) { printf("No session name specified!\n"); exit(EXIT_FAILURE); }
 		oa.mode = TERMREC_RECORD;
-		oa.fileName = argv[i + 1];
+		oa.rec.filePath = argv[i + 1];
 	} else if (strcmp(argv[i], "play") == 0) {
 		if (i == argc - 1) { printf("No session name specified!\n"); exit(EXIT_FAILURE); }
 		oa.mode = TERMREC_PLAY;
-		oa.fileName = argv[i + 1];
+		oa.rec.filePath = argv[i + 1];
 	} else if (strcmp(argv[i], "help") == 0) {
 		PrintUsage(argv[0]);
 		return 0;
 	} else {
 		printf("\"%s\" is a invalid command!\n", argv[i]);
 		exit(EXIT_FAILURE);
-	}
-
-	for (i = 2; i < argc; i++) {
-		if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--format") == 0) {
-			if (i == argc - 1) { printf("No file-format name specified!\n"); exit(EXIT_FAILURE); }
-			const char* format = argv[i + 1];
-			if (strcmp(format, "asciinema_v1") == 0) oa.format = ASCIINEMA_V1;
-			else if (strcmp(format, "asciinema_v2") == 0) oa.format = ASCIINEMA_V2;
-			else { printf("Invalid file-format specified!\n"); exit(EXIT_FAILURE); }
-		}
 	}
 
 	if (oa.mode == TERMREC_RECORD) {

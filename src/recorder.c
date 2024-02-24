@@ -45,18 +45,17 @@ void RecordSession(struct outargs oa) {
 	char *exec_cmd;
 	char cwd[PATH_MAX];
 
-	oa.env = SerializeEnv();
+	oa.rec.env = SerializeEnv();
 	exec_cmd = NULL;
 
-	if (!oa.format) oa.format = ASCIINEMA_V1;
-	if (!oa.fileName) oa.fileName = "events.cast";
+	if (!oa.rec.filePath) oa.rec.filePath = "events.cast";
 
 	if (pipe(controlfd) != 0) die("pipe");
 	oa.controlfd = controlfd[0];
 
 	TermGetWinSize(&rows, &cols);
-	oa.rows = rows;
-	oa.cols = cols;
+	oa.rec.width = cols;
+	oa.rec.height = rows;
 
 	if (getcwd(cwd, sizeof(cwd)) != NULL) {
 		printf("CWD: %s\n", cwd);
@@ -71,11 +70,11 @@ void RecordSession(struct outargs oa) {
 	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &win) == -1) die("ioctl(TIOCGWINSZ)");
 
 	owin = rwin = win;
-	if (!oa.rows || oa.rows > win.ws_row) oa.rows = win.ws_row;
-	if (!oa.cols || oa.cols > win.ws_col) oa.cols = win.ws_col;
+	if (!oa.rec.width || oa.rec.width > win.ws_col) oa.rec.width = win.ws_col;
+	if (!oa.rec.height || oa.rec.height > win.ws_row) oa.rec.height = win.ws_row;
 
-	win.ws_row = oa.rows;
-	win.ws_col = oa.cols;
+	win.ws_col = oa.rec.width;
+	win.ws_row = oa.rec.height;
 
 	TermEnableRawMode();
 
@@ -278,8 +277,7 @@ static void handle_command(enum control_command cmd) {
 }
 
 // This Function Is Responsible For Writing The Data To The File
-static inline void handle_input(unsigned char *buf, size_t buflen, FileFormat format) {
-	assert(format >= ASCIINEMA_V1 && format <= ASCIINEMA_V2);
+static inline void handle_input(FILE* writerFile, unsigned char *buf, size_t buflen) {
 	static int first = 1;
 	double delta;
 
@@ -300,7 +298,7 @@ static inline void handle_input(unsigned char *buf, size_t buflen, FileFormat fo
 
 	dur += delta;
 
-	WriteStdoutStart((format == ASCIINEMA_V1 ? delta : dur) / 1000);
+	Writer_OnBeforeStdoutData(writerFile, delta / 1000.0f);
 
 	uint32_t state, cp;
 	state = 0;
@@ -313,29 +311,29 @@ static inline void handle_input(unsigned char *buf, size_t buflen, FileFormat fo
 						uint32_t h, l;
 						h = ((cp - 0x10000) >> 10) + 0xd800;
 						l = ((cp - 0x10000) & 0x3ff) + 0xdc00;
-						WriteStdout_fprintf("\\u%04" PRIx32 "\\u%04" PRIx32, h, l);
+						Writer_OnStdoutData(writerFile, "\\u%04" PRIx32 "\\u%04" PRIx32, h, l);
 					} else {
-						WriteStdout_fprintf("\\u%04" PRIx32, cp);
+						Writer_OnStdoutData(writerFile, "\\u%04" PRIx32, cp);
 					}
 				} else {
-					WriteStdout_fputs("\\ud83d\\udca9");
+					Writer_OnStdoutData(writerFile, "\\ud83d\\udca9");
 				}
 			} else {
 				switch (buf[j]) {
 				case '"':
 				case '\\':
-					WriteStdout_fputc('\\'); // output backslash for escaping
-					WriteStdout_fputc(buf[j]); // print the character itself
+					Writer_OnStdoutData(writerFile, "\\"); // output backslash for escaping
+					Writer_OnStdoutData(writerFile, "%c", buf[j]); // print the character itself
 					break;
 				default:
-					WriteStdout_fputc(buf[j]);
+					Writer_OnStdoutData(writerFile, "%c", buf[j]);
 					break;
 				}
 			}
 		}
 	}
 
-	WriteStdoutEnd();
+	Writer_OnAfterStdoutData(writerFile);
 }
 
 /*
@@ -350,13 +348,11 @@ void StartOutputProcess(struct outargs *oa) {
 	status = EXIT_SUCCESS;
 	master = oa->masterfd;
 
-	assert(oa->format >= ASCIINEMA_V1 && oa->format <= ASCIINEMA_V2);
-
 	start_paused = paused = oa->start_paused;
 
 	setbuf(stdout, NULL); // Set The Stream To Be Un-Buffered
-	WriterInit(oa->fileName);
-	WriteHeader(oa);
+	FILE* writerFile = Writer_Init(oa->rec.filePath);
+	Writer_WriteHeader(writerFile, &oa->rec);
 
 	if (close(STDIN_FILENO) == -1) {
 		die("close");
@@ -428,15 +424,17 @@ void StartOutputProcess(struct outargs *oa) {
 				}
 
 				if (!paused) {
-					handle_input(obuf, nread, oa->format);
+					handle_input(writerFile, obuf, nread);
 				}
 			}
 		}
 	}
 
 end:
-	WriteDuration(dur / 1000);
-	WriterClose();
+	Writer_OnStdoutAllEnd(writerFile);
+	Writer_WriteDuration(writerFile, dur / 1000.0f);
+	Writer_Close(writerFile);
+
 	if (close(oa->masterfd) == -1) {
 		die("close");
 	}
