@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "play.h"
 
 void PlaySession(struct outargs oa) {

@@ -1,10 +1,24 @@
+#define _XOPEN_SOURCE 600
+
+#include <ctype.h>
+#include <assert.h>
+#include <string.h>
+#include <errno.h>
+#include <inttypes.h>
+
+#include "main.h"
+#include "writer.h"
+#include "xwrap.h"
+#include "terminal.h"
 #include "recorder.h"
+
+#include "utf8.h"
 
 void SetupSignalHandlers(void); // In signals.c
 
 // Defined In main.c
 extern struct winsize owin, rwin, win;
-extern FILE *debug_out;
+extern FILE* debug_out;
 extern int masterfd;
 extern pid_t child;
 

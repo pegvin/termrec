@@ -1,6 +1,8 @@
 #ifndef UTF8_H_
 #define UTF8_H_
 
+#include <stdint.h>
+
 /* http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ */
 #define UTF8_ACCEPT 0
 #define UTF8_REJECT 1

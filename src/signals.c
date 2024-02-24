@@ -1,5 +1,5 @@
-#include "main.h"
 #include "xwrap.h"
+#include "main.h"
 #include "terminal.h"
 
 #include <sys/types.h>
