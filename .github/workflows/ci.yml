@@ -8,9 +8,7 @@ jobs:
   linux-x86_64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
+    - uses: actions/checkout@v4
 
     - name: Build
       run: make all BUILD_TYPE=Release
@@ -25,9 +23,7 @@ jobs:
   mac-x86_64:
     runs-on: macos-11
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
+    - uses: actions/checkout@v4
 
     - name: Build
       run: make all BUILD_TYPE=Release
@@ -39,19 +35,17 @@ jobs:
         path: ./build/
         if-no-files-found: error
 
-  freebsd-x86_64:
+  netbsd-x86_64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: Run FreeBSD VM & Build
-      id: termrec
-      uses: vmactions/freebsd-vm@v1
+    - uses: actions/checkout@v4
+    - name: Run NetBSD VM & Build
+      id: test
+      uses: vmactions/netbsd-vm@v1
       with:
         usesh: true
         prepare: |
-          pkg install -y gmake git
+          /usr/sbin/pkg_add gmake
 
         run: |
           gmake all BUILD_TYPE=Release CC=clang
@@ -59,7 +53,29 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: feeebsd-x86_64
+        name: netbsd-x86_64
+        path: ./build/
+        if-no-files-found: error
+
+  freebsd-x86_64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run FreeBSD VM & Build
+      id: termrec
+      uses: vmactions/freebsd-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkg install -y gmake
+
+        run: |
+          gmake all BUILD_TYPE=Release CC=clang
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: freebsd-x86_64
         path: ./build/
         if-no-files-found: error
 
