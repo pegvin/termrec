@@ -40,14 +40,14 @@ jobs:
         if-no-files-found: error
 
   freebsd-x86_64:
-    runs-on: macos-12
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: Run FreeBSD VM & Build
       id: termrec
-      uses: vmactions/freebsd-vm@v0
+      uses: vmactions/freebsd-vm@v1
       with:
         usesh: true
         prepare: |
@@ -64,14 +64,14 @@ jobs:
         if-no-files-found: error
 
   openbsd-x86_64:
-    runs-on: macos-12
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: Run OpenBSD VM & Build
       id: termrec
-      uses: vmactions/openbsd-vm@v0
+      uses: vmactions/openbsd-vm@v1
       with:
         usesh: true
         prepare: |
